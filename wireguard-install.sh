@@ -56,13 +56,15 @@ function checkOS() {
 			echo "Your version of CentOS (${VERSION_ID}) is not supported. Please use CentOS 8 or later"
 			exit 1
 		fi
+	elif [[ ${OS} == 'amzn' ]]; then
+		OS=amzn
 	elif [[ -e /etc/oracle-release ]]; then
 		source /etc/os-release
 		OS=oracle
 	elif [[ -e /etc/arch-release ]]; then
 		OS=arch
 	else
-		echo "Looks like you aren't running this installer on a Debian, Ubuntu, Fedora, CentOS, AlmaLinux, Oracle or Arch Linux system"
+		echo "Looks like you aren't running this installer on a Debian, Ubuntu, Fedora, CentOS, AlmaLinux, Oracle, Arch Linux, or Amazon Linux system"
 		exit 1
 	fi
 }
@@ -204,6 +206,9 @@ function installWireGuard() {
 		dnf install -y wireguard-tools qrencode iptables
 	elif [[ ${OS} == 'arch' ]]; then
 		pacman -S --needed --noconfirm wireguard-tools qrencode
+	elif [[ ${OS} == 'amzn' ]]; then
+		amazon-linux-extras install -y epel
+		yum install -y wireguard-tools iptables qrencode
 	fi
 
 	# Make sure the directory exists (this does not seem the be the case on fedora)
@@ -458,6 +463,8 @@ function uninstallWg() {
 			yum remove --noautoremove wireguard-tools qrencode
 		elif [[ ${OS} == 'arch' ]]; then
 			pacman -Rs --noconfirm wireguard-tools qrencode
+		elif [[ ${OS} == 'amzn' ]]; then
+			yum remove -y wireguard-tools qrencode iptables
 		fi
 
 		rm -rf /etc/wireguard
